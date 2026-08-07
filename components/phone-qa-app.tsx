@@ -64,6 +64,7 @@ const SUGGESTIONS = [
   "聊天没有回复怎么排查？",
   "怎么部署到 Netlify / Vercel？",
   "数据存在哪里，怎么备份？",
+  "帮我写个小游戏装到本机",
 ];
 
 function formatRelativeTime(ts: number): string {
@@ -749,6 +750,8 @@ export function PhoneQaApp({ onClose, onNotice }: PhoneQaAppProps) {
             <div className="qa-welcome-title">有什么问题？</div>
             <div className="qa-welcome-sub">
               我是小坊，工坊的驻场工程师。使用问题、报错排查、部署配置，都可以问我。
+              <br />
+              我还能动手：写小游戏 / APP / 剧场直接装进本机试玩；连接仓库后我会查源码答疑，填了有写权限的 PAT 还能帮你改代码。
               <br />
               想创作角色、世界书或美化桌面，找桌面上的小卷更合适。
             </div>
