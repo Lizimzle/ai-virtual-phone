@@ -76,6 +76,19 @@ function parseSseEvents(buffer: string): { events: string[]; rest: string } {
     };
 }
 
+// 流式空闲看门狗：超过该时长没有收到任何字节就中断流式、转非流式重试。
+// 常见诱因是中转站/代理开了响应缓冲——流式表现为"停住几分钟后一口气全出"。
+// 可用 localStorage 键 ai_phone_qa_stream_idle_ms 覆盖（调参/测试用）。
+function qaStreamIdleMs(): number {
+    try {
+        const raw = Number(localStorage.getItem("ai_phone_qa_stream_idle_ms"));
+        if (Number.isFinite(raw) && raw >= 1_000 && raw <= 600_000) return Math.floor(raw);
+    } catch {
+        // ignore
+    }
+    return 90_000;
+}
+
 async function streamQaProviderRequest(
     request: LlmRequestPayload,
     options?: { signal?: AbortSignal },
@@ -88,6 +101,15 @@ async function streamQaProviderRequest(
         if (options.signal.aborted) llmAbort.abort();
         else options.signal.addEventListener("abort", abortHandler);
     }
+    const idleMs = qaStreamIdleMs();
+    let lastByteAt = Date.now();
+    let idleAborted = false;
+    const idleTimer = setInterval(() => {
+        if (Date.now() - lastByteAt > idleMs) {
+            idleAborted = true;
+            llmAbort.abort();
+        }
+    }, 2_000);
 
     let content = "";
     let reasoning = "";
@@ -134,6 +156,7 @@ async function streamQaProviderRequest(
 
         while (true) {
             const { done, value } = await reader.read();
+            lastByteAt = Date.now();
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
             const parsed = parseSseEvents(buffer);
@@ -146,7 +169,13 @@ async function streamQaProviderRequest(
         if (buffer.trim()) await handleEvent(buffer);
 
         return { content: stripHallucinatedTimestamps(content), reasoning };
+    } catch (error) {
+        if (idleAborted && !options?.signal?.aborted) {
+            throw new Error(`流式响应停滞超过 ${Math.round(idleMs / 1000)} 秒（常见于中转站开了响应缓冲），已中断并改用非流式重取`);
+        }
+        throw error;
     } finally {
+        clearInterval(idleTimer);
         clearTimeout(llmTimeout);
         if (options?.signal) options.signal.removeEventListener("abort", abortHandler);
     }

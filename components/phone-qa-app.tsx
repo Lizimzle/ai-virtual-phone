@@ -270,6 +270,7 @@ function QaMessageItem({ msg, isStreaming, onRetry, onViewImage }: { msg: QaMsg;
       {isStreaming && msg.toolDrafting && !thinkingOnly && (
         <div className="qa-thinking qa-tool-drafting">正在编写工具调用…</div>
       )}
+      {msg.streamNote && <div className="qa-msg-note">{msg.streamNote}</div>}
       {msg.pendingCommit && <QaCommitCard msg={msg} />}
       {msg.aborted && <div className="qa-msg-note">已停止生成</div>}
       {msg.error && (

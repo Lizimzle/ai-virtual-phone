@@ -36,6 +36,8 @@ export type QaMsg = {
     pendingCommit?: QaPendingCommit;
     /** 流过滤器正在缓冲长工具指令：显示"编写工具调用中"占位（瞬态，不持久） */
     toolDrafting?: boolean;
+    /** 流式中断降级为非流式时的说明（解释"停几分钟后一口气全出"） */
+    streamNote?: string;
     ts: number;
 };
 
@@ -489,6 +491,12 @@ export async function sendQaMessage(text: string, images?: string[]): Promise<vo
                 },
                 onToolDrafting: (drafting) => {
                     paintAssistant({ toolDrafting: drafting || undefined }, { force: true, persist: false });
+                },
+                onStreamFallback: (reason) => {
+                    paintAssistant(
+                        { streamNote: `流式传输中断，已切换为整段获取——需等完整生成后一次性显示，请稍候。原因：${reason}` },
+                        { force: true, persist: false },
+                    );
                 },
                 onContentCreated: (item) => {
                     updateSession(
