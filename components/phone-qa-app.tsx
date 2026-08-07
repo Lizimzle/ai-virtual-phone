@@ -529,7 +529,6 @@ export function PhoneQaApp({ onClose, onNotice }: PhoneQaAppProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [repoSheetOpen, setRepoSheetOpen] = useState(false);
   const [repoConnected, setRepoConnected] = useState(false);
-  const [devNoticeOpen, setDevNoticeOpen] = useState(true);
   const [clearToolsOpen, setClearToolsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pendingImages, setPendingImages] = useState<string[]>([]);
@@ -872,23 +871,6 @@ export function PhoneQaApp({ onClose, onNotice }: PhoneQaAppProps) {
         />
       )}
       </div>
-
-      {devNoticeOpen && (
-        <div className="qa-devnotice-backdrop">
-          <div className="qa-devnotice" role="alertdialog" aria-label="开发中提示">
-            <div className="qa-devnotice-title">App 开发中</div>
-            <div className="qa-devnotice-text">工坊还在开发中，请暂时不要使用。</div>
-            <div className="qa-devnotice-actions">
-              <button type="button" className="qa-devnotice-btn is-primary" onClick={onClose}>
-                返回桌面
-              </button>
-              <button type="button" className="qa-devnotice-btn" onClick={() => setDevNoticeOpen(false)}>
-                仍要看看
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {clearToolsOpen && (
         <div className="qa-devnotice-backdrop" onClick={() => setClearToolsOpen(false)}>
