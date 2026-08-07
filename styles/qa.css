@@ -1181,6 +1181,17 @@
 .qa-segment-btn.is-active {
   background: var(--qa-bg-raised);
   color: var(--qa-text-primary);
+  font-weight: 600;
+}
+/* 选中项加紫色下划线，让选中态一眼可见 */
+.qa-segment-btn.is-active::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 3px;
+  margin: 3px auto 0;
+  border-radius: 2px;
+  background: var(--qa-accent);
 }
 
 /* 提交提案卡片 */
