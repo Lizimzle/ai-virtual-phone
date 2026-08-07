@@ -35,6 +35,7 @@ import {
 } from "./qa-feedback";
 import { QA_CONTENT_TOOLS, type QaCreatedContent } from "./qa-content-tools";
 import { searchQaFaq, readQaFaqPage } from "./qa-faq";
+import { getQaPageChars } from "./qa-prefs";
 
 export type { QaCreatedContent } from "./qa-content-tools";
 
@@ -350,7 +351,12 @@ const githubReadTool: QaTool = {
         const end = typeof args.end === "number" ? Math.min(lines.length, args.end) : lines.length;
         const slice = lines.slice(start - 1, end);
         const numbered = slice.map((line, i) => `${start + i}\t${line}`).join("\n");
-        return clip(`${file.path}（${lines.length} 行，显示 ${start}-${Math.min(end, lines.length)}）：\n${numbered}`);
+        const body = `${file.path}（${lines.length} 行，显示 ${start}-${Math.min(end, lines.length)}）：\n${numbered}`;
+        // 读源码按「单页读取字符数」截断（工坊配置可调），截断时提示用行号范围续读
+        const limit = getQaPageChars();
+        return body.length > limit
+            ? `${body.slice(0, limit)}\n…（已截断，用 start/end 行号范围继续读）`
+            : body;
     },
 };
 

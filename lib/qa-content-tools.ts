@@ -2,6 +2,7 @@
 // 让工坊 agent 把写好的内容直接装进本机：自定义 APP、小游戏（游戏大厅·本机测试）、
 // 黑市剧场（工作室·本机测试）。全部只写浏览器本地存储，可在对应 UI 里删除，不碰远端。
 
+import { getQaPageChars } from "./qa-prefs";
 import {
     upsertLocalTestGame,
     isLocalTestGameId,
@@ -100,8 +101,6 @@ const THEATER_GUIDE_MD = `# 黑市剧场（夜间档案）制作说明
 - 想要花字/特效：renderRules 匹配 AI 按 outputContract 输出的标记，renderCss 上样式。
 - 写完用「上架本机剧场」装进 黑市剧场 → 工作室 → 本机测试，可反复试演（写记忆、可删除）。`;
 
-const CONTENT_GUIDE_PAGE_SIZE = 9000;
-
 const contentGuideTool: QaContentTool = {
     name: "创作指南",
     nativeName: "read_creation_guide",
@@ -129,9 +128,10 @@ const contentGuideTool: QaContentTool = {
             : type === "theater" ? THEATER_GUIDE_MD
             : null;
         if (!guide) return "type 需为 app / game / theater 之一。";
-        const pages = Math.max(1, Math.ceil(guide.length / CONTENT_GUIDE_PAGE_SIZE));
+        const pageSize = getQaPageChars();
+        const pages = Math.max(1, Math.ceil(guide.length / pageSize));
         const page = Math.min(pages, Math.max(1, typeof args.page === "number" ? Math.floor(args.page) : 1));
-        const slice = guide.slice((page - 1) * CONTENT_GUIDE_PAGE_SIZE, page * CONTENT_GUIDE_PAGE_SIZE);
+        const slice = guide.slice((page - 1) * pageSize, page * pageSize);
         const head = `【${type} 创作指南 第 ${page}/${pages} 页】${pages > 1 ? `（还有内容，用 page 参数翻页）` : ""}`;
         return `${head}\n${slice}`;
     },
@@ -455,9 +455,10 @@ function norm(value: unknown): string {
 // ── 读取本机内容（本机测试 / 草稿箱，分页）──
 
 function paginate(doc: string, pageArg: unknown, head: string): string {
-    const pages = Math.max(1, Math.ceil(doc.length / CONTENT_GUIDE_PAGE_SIZE));
+    const pageSize = getQaPageChars();
+    const pages = Math.max(1, Math.ceil(doc.length / pageSize));
     const page = Math.min(pages, Math.max(1, typeof pageArg === "number" ? Math.floor(pageArg) : 1));
-    const slice = doc.slice((page - 1) * CONTENT_GUIDE_PAGE_SIZE, page * CONTENT_GUIDE_PAGE_SIZE);
+    const slice = doc.slice((page - 1) * pageSize, page * pageSize);
     return `【${head} 第 ${page}/${pages} 页】${pages > 1 ? "（还有内容，用 page 参数翻页）" : ""}\n${slice}`;
 }
 

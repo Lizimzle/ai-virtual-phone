@@ -36,6 +36,13 @@ import {
   type QaSession,
   type QaToolStatus,
 } from "@/lib/qa-chat-store";
+import {
+  getQaPageChars,
+  setQaPageChars,
+  QA_DEFAULT_PAGE_CHARS,
+  QA_PAGE_CHARS_MIN,
+  QA_PAGE_CHARS_MAX,
+} from "@/lib/qa-prefs";
 import { resolveQaApiConfig } from "@/lib/qa-agent-engine";
 import {
   loadQaGithubConfig,
@@ -351,6 +358,7 @@ function QaSessionDrawer({
 
 function QaSettingsSheet({ onClose, onNotice }: { onClose: () => void; onNotice?: (msg: string) => void }) {
   const [budget, setBudget] = useState(() => String(getQaContextBudgetChars()));
+  const [pageChars, setPageChars] = useState(() => String(getQaPageChars()));
   const usedChars = getQaActiveContextChars();
   const pct = Math.round((usedChars / getQaContextBudgetChars()) * 100);
 
@@ -360,15 +368,23 @@ function QaSettingsSheet({ onClose, onNotice }: { onClose: () => void; onNotice?
       onNotice?.(`预算需为 ${QA_CONTEXT_BUDGET_MIN.toLocaleString()} - ${QA_CONTEXT_BUDGET_MAX.toLocaleString()} 之间的数字。`);
       return;
     }
+    const parsedPage = Number(pageChars);
+    if (!Number.isFinite(parsedPage) || parsedPage < QA_PAGE_CHARS_MIN || parsedPage > QA_PAGE_CHARS_MAX) {
+      onNotice?.(`单页字符数需为 ${QA_PAGE_CHARS_MIN.toLocaleString()} - ${QA_PAGE_CHARS_MAX.toLocaleString()} 之间的数字。`);
+      return;
+    }
     setQaContextBudgetChars(parsed);
+    setQaPageChars(parsedPage);
     onNotice?.("已保存工坊配置。");
     onClose();
   };
 
   const reset = () => {
     setQaContextBudgetChars(null);
+    setQaPageChars(null);
     setBudget(String(QA_DEFAULT_CONTEXT_BUDGET_CHARS));
-    onNotice?.("已恢复默认预算。");
+    setPageChars(String(QA_DEFAULT_PAGE_CHARS));
+    onNotice?.("已恢复默认配置。");
   };
 
   return (
@@ -391,6 +407,21 @@ function QaSettingsSheet({ onClose, onNotice }: { onClose: () => void; onNotice?
           上下文满 100% 时自动压缩成摘要并重新累计。中文约 1 字符 ≈ 1 token；默认 {QA_DEFAULT_CONTEXT_BUDGET_CHARS.toLocaleString()}，小上下文（32k）模型建议 30000–50000。
         </div>
         <div className="qa-settings-hint">当前会话已用 {usedChars.toLocaleString()} 字符（约 {pct}%）。</div>
+        <label className="qa-settings-field">
+          <span>单页读取字符数</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={QA_PAGE_CHARS_MIN}
+            max={QA_PAGE_CHARS_MAX}
+            step={1000}
+            value={pageChars}
+            onChange={(e) => setPageChars(e.target.value)}
+          />
+        </label>
+        <div className="qa-settings-hint">
+          小坊翻页读答疑文档 / 本机内容 / 仓库源码时，每页返回的字符数。默认 {QA_DEFAULT_PAGE_CHARS.toLocaleString()}；调大读得快但更占上下文，小上下文模型建议调小。
+        </div>
         <div className="qa-devnotice-actions is-row">
           <button type="button" className="qa-devnotice-btn" onClick={reset}>恢复默认</button>
           <button type="button" className="qa-devnotice-btn is-primary" onClick={save}>保存</button>

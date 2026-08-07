@@ -1,6 +1,7 @@
 // ── 工坊答疑文档 ──────────────────────────────────
 // 一份持续补充的产品 FAQ：工坊 agent 通过「答疑文档」工具按关键词检索或分页阅读。
 //
+import { getQaPageChars } from "./qa-prefs";
 // 【维护约定】
 // - 按主题分节（## 开头），每条问答用「### Q: 问题」+ 答案段落；
 // - 只写经过核实的事实，菜单路径用「设置 → API 设置」格式；
@@ -138,7 +139,6 @@ NEXT_PUBLIC_ 开头的变量会打包进浏览器代码、完全公开。Supabas
 
 // ── 检索 ──
 
-const FAQ_PAGE_SIZE = 9000;
 const FAQ_FIND_BUDGET = 9000;
 
 type FaqEntry = { sectionTitle: string; text: string };
@@ -176,10 +176,11 @@ export function searchQaFaq(keyword: string): string[] {
   return hits;
 }
 
-/** 顺序分页阅读。 */
+/** 顺序分页阅读。页大小可在工坊配置里调节。 */
 export function readQaFaqPage(pageArg: unknown): string {
-  const pages = Math.max(1, Math.ceil(QA_FAQ_DOC_MD.length / FAQ_PAGE_SIZE));
+  const pageSize = getQaPageChars();
+  const pages = Math.max(1, Math.ceil(QA_FAQ_DOC_MD.length / pageSize));
   const page = Math.min(pages, Math.max(1, typeof pageArg === "number" ? Math.floor(pageArg) : 1));
-  const slice = QA_FAQ_DOC_MD.slice((page - 1) * FAQ_PAGE_SIZE, page * FAQ_PAGE_SIZE);
+  const slice = QA_FAQ_DOC_MD.slice((page - 1) * pageSize, page * pageSize);
   return `【答疑文档 第 ${page}/${pages} 页】${pages > 1 ? "（还有内容，用 page 参数翻页）" : ""}\n${slice}`;
 }
