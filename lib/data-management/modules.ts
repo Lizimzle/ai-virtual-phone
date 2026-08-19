@@ -418,6 +418,33 @@ export const DATA_MODULES: DataModuleDefinition[] = [
     },
   ],
 },
+  // 建议新增模块：自定义应用（工坊 / 自制应用）
+{
+  id: "custom_apps",
+  label: "自定义应用",
+  description: "自制应用本体、运行数据、时间线与应用内记忆",
+  variant: "teal",
+  critical: true,
+  sources: [
+    {
+      type: "kv",
+      label: "自定义应用数据",
+      keys: [
+        "ai_phone_custom_apps_v1",
+        "ai_phone_custom_app_icon_styles_v1",
+        "ai_phone_custom_app_notifications_v1",
+        "ai_phone_custom_app_badges_v1",
+        "ai_phone_custom_app_tasks_v1",
+        "ai_phone_custom_app_world_activations_v1",
+        "ai_phone_custom_app_suggestions_v1",
+      ],
+      prefixes: [
+        "ai_phone_custom_app_data_v1:",
+        "ai_phone_custom_app_timeline_v1:",
+      ],
+    },
+  ],
+},
 ];
 
 export function getDataModule(id: DataModuleId): DataModuleDefinition | undefined {
